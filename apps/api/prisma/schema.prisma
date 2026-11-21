@@ -1,0 +1,142 @@
+// ECO data model — foundations only.
+// Conventions (see docs/ARCHITECTURE.md):
+//   * Money = Int in minor units (fils) + a `currency` column. Never Float/Decimal for prices.
+//   * Timestamps are stored in UTC (timestamptz).
+//   * User.id equals the Supabase Auth user id (auth.users.id).
+//   * Enums mirror packages/shared/src/status.ts — change both together.
+// Feature tables (threads/quotes, boards, campaigns, gifts, payments, refunds) are added
+// by the developer who owns that module, in its own migration.
+
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "esm"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Currency {
+  AED
+}
+
+enum Role {
+  CUSTOMER
+  STAFF
+  ADMIN
+}
+
+enum ProductStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
+model User {
+  id        String   @id @db.Uuid
+  email     String   @unique
+  role      Role     @default(CUSTOMER)
+  locale    String   @default("en")
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  addresses Address[]
+  cart      Cart?
+}
+
+model Address {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @db.Uuid
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// ISO 3166-1 alpha-2, e.g. "AE"
+  countryCode String   @db.Char(2)
+  /// Emirate / state / province — free text, format varies by country
+  region      String?
+  city        String
+  line1       String
+  line2       String?
+  /// Optional: UAE has no obligatory postcode (spec §6 AddressForm)
+  postalCode  String?
+  recipient   String
+  phone       String
+  isDefault   Boolean  @default(false)
+  createdAt   DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime @updatedAt @db.Timestamptz(3)
+
+  @@index([userId])
+}
+
+model Category {
+  id        String     @id @default(uuid()) @db.Uuid
+  slug      String     @unique
+  parentId  String?    @db.Uuid
+  parent    Category?  @relation("CategoryTree", fields: [parentId], references: [id])
+  children  Category[] @relation("CategoryTree")
+  position  Int        @default(0)
+  /// { "en": "Home", "ar": "المنزل" }
+  name      Json
+  products  Product[]
+  createdAt DateTime   @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime   @updatedAt @db.Timestamptz(3)
+}
+
+model Product {
+  id          String           @id @default(uuid()) @db.Uuid
+  slug        String           @unique
+  status      ProductStatus    @default(DRAFT)
+  categoryId  String?          @db.Uuid
+  category    Category?        @relation(fields: [categoryId], references: [id])
+  /// Localized text keyed by locale: { "en": "...", "ar": "..." }
+  name        Json
+  description Json
+  variants    ProductVariant[]
+  createdAt   DateTime         @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime         @updatedAt @db.Timestamptz(3)
+
+  @@index([categoryId])
+}
+
+model ProductVariant {
+  id         String     @id @default(uuid()) @db.Uuid
+  productId  String     @db.Uuid
+  product    Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+  sku        String     @unique
+  /// e.g. { "color": "Sand", "size": "M" }
+  options    Json       @default("{}")
+  /// VAT-inclusive retail price in minor units (fils)
+  priceMinor Int
+  currency   Currency   @default(AED)
+  stock      Int        @default(0)
+  cartItems  CartItem[]
+  createdAt  DateTime   @default(now()) @db.Timestamptz(3)
+  updatedAt  DateTime   @updatedAt @db.Timestamptz(3)
+
+  @@index([productId])
+}
+
+/// Account cart. Guest carts live client-side and merge into this on sign-in (decision D04).
+model Cart {
+  id        String     @id @default(uuid()) @db.Uuid
+  userId    String     @unique @db.Uuid
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  currency  Currency   @default(AED)
+  items     CartItem[]
+  createdAt DateTime   @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime   @updatedAt @db.Timestamptz(3)
+}
+
+model CartItem {
+  id        String         @id @default(uuid()) @db.Uuid
+  cartId    String         @db.Uuid
+  cart      Cart           @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  variantId String         @db.Uuid
+  variant   ProductVariant @relation(fields: [variantId], references: [id])
+  quantity  Int
+  /// Number of units to gift-wrap (wrapping is counted per unit, spec §3 policy 6)
+  wrapUnits Int            @default(0)
+  createdAt DateTime       @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime       @updatedAt @db.Timestamptz(3)
+
+  @@unique([cartId, variantId])
+}

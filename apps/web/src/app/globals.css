@@ -1,0 +1,21 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+/* Design tokens from the UI/UX handoff (docs/design/eco-tokens.css). Edit tokens there + here together. */
+@import '../styles/eco-tokens.css';
+
+/* next/font exposes hashed family names via CSS variables; route them into the ECO font tokens. */
+:root {
+  --eco-font-sans:
+    var(--font-noto-sans), var(--font-noto-arabic), system-ui, sans-serif;
+  --eco-font-arabic:
+    var(--font-noto-arabic), var(--font-noto-sans), system-ui, sans-serif;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+}

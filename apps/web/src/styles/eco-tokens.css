@@ -1,0 +1,106 @@
+/* ECO design handoff — Tailwind v4. Import after tailwindcss in globals.css.
+   For Tailwind v3, use these :root variables with theme.extend instead.
+   Layout and spacing use standard Tailwind utilities; see the specification. */
+:root {
+  color-scheme: light;
+  --background: #faf8f4;
+  --foreground: #202522;
+  --card: #ffffff;
+  --card-foreground: #202522;
+  --popover: #ffffff;
+  --popover-foreground: #202522;
+  --primary: #a33f2b;
+  --primary-foreground: #ffffff;
+  --primary-hover: #8d3322;
+  --primary-pressed: #75291b;
+  --secondary: #f0f1ec;
+  --secondary-foreground: #202522;
+  --muted: #f0f1ec;
+  --muted-foreground: #626963;
+  --accent: #f7eae3;
+  --accent-foreground: #a33f2b;
+  --border: #dadfd8;
+  --input: #798279;
+  --ring: #2e654d;
+  --destructive: #b3261e;
+  --destructive-foreground: #ffffff;
+  --destructive-surface: #fcedea;
+  --success: #246146;
+  --success-surface: #ecf4ee;
+  --warning: #805300;
+  --warning-surface: #fbf2de;
+  --info: #285c84;
+  --info-surface: #edf3f8;
+  --radius: 0.375rem;
+  --eco-font-sans: 'Noto Sans', 'Noto Sans Arabic', system-ui, sans-serif;
+  --eco-font-arabic: 'Noto Sans Arabic', 'Noto Sans', system-ui, sans-serif;
+  --eco-shadow-menu: 0 4px 16px rgb(32 37 34 / 0.08);
+  --eco-shadow-overlay: 0 16px 48px rgb(32 37 34 / 0.16);
+  --eco-control-height: 3rem;
+  --eco-motion-fast: 150ms;
+  --eco-motion-panel: 200ms;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-pressed: var(--primary-pressed);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-destructive-surface: var(--destructive-surface);
+  --color-success: var(--success);
+  --color-success-surface: var(--success-surface);
+  --color-warning: var(--warning);
+  --color-warning-surface: var(--warning-surface);
+  --color-info: var(--info);
+  --color-info-surface: var(--info-surface);
+  --font-sans: var(--eco-font-sans);
+  --font-arabic: var(--eco-font-arabic);
+  --radius-sm: 0.25rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+  --shadow-menu: var(--eco-shadow-menu);
+  --shadow-overlay: var(--eco-shadow-overlay);
+}
+
+/* Apply fonts from next/font through --eco-font-* in the application.
+   Scope base rules to the actual store; do not overwrite Stripe iframe styles. */
+html {
+  font-family: var(--eco-font-sans);
+}
+html[lang^='ar'] {
+  font-family: var(--eco-font-arabic);
+}
+html[lang^='ar'] body {
+  line-height: 1.75;
+}
+html[lang^='ar'] :is(h1, h2, h3, button, label) {
+  letter-spacing: normal;
+}
+:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --eco-motion-fast: 0ms;
+    --eco-motion-panel: 0ms;
+  }
+}
